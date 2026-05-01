@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>J-Flash Pro | Session</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-ruby: #94a3b8;
+            --accent: #22c55e;
+            --secondary: #334155;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        #session-info {
+            font-size: 0.8rem;
+            color: var(--text-ruby);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        #card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 4/5;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        #card:active { transform: scale(0.96); }
+
+        #display-text {
+            font-size: clamp(1.5rem, 7vw, 3rem);
+            font-weight: 700;
+            line-height: 2.2; /* Increased for ruby room */
+            text-align: center;
+        }
+
+        ruby { ruby-align: center; }
+        rt { font-size: 0.45em; color: var(--text-ruby); font-weight: 400; padding-bottom: 0.2em; }
+
+        #progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 6px;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 24px 24px 0 0;
+        }
+
+        #vocab-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            padding-bottom: 40px;
+        }
+
+        #vocab-container.visible { opacity: 1; transform: translateY(0); }
+
+        .vocab-item {
+            background: var(--secondary);
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent);
+            min-height: 70px; /* Room for ruby */
+        }
+
+        .vocab-jp { 
+            font-weight: 600; 
+            font-size: 1.2rem; 
+            line-height: 1.8; 
+        }
+        
+        .vocab-en { color: var(--text-ruby); font-size: 0.95rem; text-align: right; margin-left: 10px; }
+
+        #status {
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .emoji-pop {
+            position: fixed;
+            font-size: 2.5rem;
+            pointer-events: none;
+            z-index: 100;
+            animation: floatUp 1.2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+            100% { transform: translateY(-120px) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="session-info">SESSION: 0 / 3</div>
+
+    <div id="card">
+        <div id="progress-bar"></div>
+        <div id="display-text">...</div>
+    </div>
+    
+    <div id="status">Loading data...</div>
+
+    <div id="vocab-container"></div>
+
+    <script>
+        const displayElement = document.getElementById('display-text');
+        const progressBar = document.getElementById('progress-bar');
+        const vocabContainer = document.getElementById('vocab-container');
+        const statusText = document.getElementById('status');
+        const sessionText = document.getElementById('session-info');
+        
+        // Expanded Pool with 20 starting items
+        const pool = [
+            { text: "日[に]本[ほん]に行[い]きたいです。", emojis: ["🇯🇵", "✈️"], vocab: [{ word: "日本", reading: "にほん", mean: "Japan" }, { word: "行きたい", reading: "いきたい", mean: "Want to go" }] },
+            { text: "朝[あさ]ご飯[ごはん]を食[た]べましたか？", emojis: ["🥣", "🍳"], vocab: [{ word: "朝ご飯", reading: "あさごはん", mean: "Breakfast" }, { word: "食べた", reading: "たべた", mean: "Ate" }] },
+            { text: "水[みず]を飲[の]んでもいいですか？", emojis: ["🚰", "🙋‍♂️"], vocab: [{ word: "水", reading: "みず", mean: "Water" }, { word: "飲んでもいい", reading: "のんでもいい", mean: "May drink" }] },
+            { text: "仕[し]事[ごと]が忙[いそが]しいです。", emojis: ["💼", "😫"], vocab: [{ word: "仕事", reading: "しごと", mean: "Work" }, { word: "忙しい", reading: "いそがしい", mean: "Busy" }] },
+            { text: "名[な]前[まえ]を教[おし]えてください。", emojis: ["📛", "🗣️"], vocab: [{ word: "名前", reading: "なまえ", mean: "Name" }, { word: "教えて", reading: "おしえて", mean: "Please tell" }] },
+            { text: "時[じ]間[かん]がありません。", emojis: ["⏰", "🏃‍♂️"], vocab: [{ word: "時間", reading: "じかん", mean: "Time" }, { word: "ありません", reading: "ありません", mean: "None / Don't have" }] },
+            { text: "駅[えき]はどこですか？", emojis: ["🚉", "❓"], vocab: [{ word: "駅", reading: "えき", mean: "Station" }, { word: "どこ", reading: "どこ", mean: "Where" }] },
+            { text: "今日[きょう]は暑[あつ]いですね。", emojis: ["☀️", "🥵"], vocab: [{ word: "今日", reading: "きょう", mean: "Today" }, { word: "暑い", reading: "あつい", mean: "Hot" }] },
+            { text: "道[みち]に迷[まよ]いました。", emojis: ["📍", "😵"], vocab: [{ word: "道", reading: "みち", mean: "Road/Way" }, { word: "迷いました", reading: "まよいました", mean: "Got lost" }] },
+            { text: "一[いっ]緒[しょ]に遊[あそ]びましょう。", emojis: ["🤝", "🎮"], vocab: [{ word: "一緒に", reading: "いっしょに", mean: "Together" }, { word: "遊びましょう", reading: "あそびましょう", mean: "Let's play" }] },
+            { text: "映[えい]画[が]を観[み]るのが好[す]きです。", emojis: ["🎬", "🍿"], vocab: [{ word: "映画", reading: "えいが", mean: "Movie" }, { word: "観る", reading: "みる", mean: "To watch" }] },
+            { text: "薬[くすり]を飲[の]んで下[くだ]さい。", emojis: ["💊", "💊"], vocab: [{ word: "薬", reading: "くすり", mean: "Medicine" }, { word: "飲んで", reading: "のんで", mean: "Drink/Take" }] },
+            { text: "家[いえ]に帰[かえ]ります。", emojis: ["🏠", "🚲"], vocab: [{ word: "家", reading: "いえ", mean: "House" }, { word: "帰ります", reading: "かえります", mean: "Return home" }] },
+            { text: "この本[ほん]は高[たか]いです。", emojis: ["📖", "💰"], vocab: [{ word: "この本", reading: "このほん", mean: "This book" }, { word: "高い", reading: "たかい", mean: "Expensive" }] },
+            { text: "昨日[きのう]は何[なに]をしましたか？", emojis: ["🕒", "🤔"], vocab: [{ word: "昨日", reading: "きのう", mean: "Yesterday" }, { word: "何を", reading: "なにを", mean: "What (object)" }] },
+            { text: "傘[かさ]を忘[わす]れました。", emojis: ["☔", "🤦‍♂️"], vocab: [{ word: "傘", reading: "かさ", mean: "Umbrella" }, { word: "忘れました", reading: "わすれました", mean: "Forgot" }] },
+            { text: "友[とも]達[だち]と話[はな]します。", emojis: ["👥", "💬"], vocab: [{ word: "友達", reading: "ともだち", mean: "Friend" }, { word: "話します", reading: "はなします", mean: "Talk" }] },
+            { text: "音[おん]楽[がく]を聴[き]いています。", emojis: ["🎧", "🎵"], vocab: [{ word: "音楽", reading: "おんがく", mean: "Music" }, { word: "聴く", reading: "きく", mean: "Listen" }] },
+            { text: "勉[べん]強[きょう]したくないです。", emojis: ["📝", "❌"], vocab: [{ word: "勉強", reading: "べんきょう", mean: "Study" }, { word: "したくない", reading: "したくない", mean: "Don't want to do" }] },
+            { text: "疲[つか]れました。", emojis: ["💤", "😩"], vocab: [{ word: "疲れました", reading: "つかれました", mean: "Got tired" }] }
+        ];
+
+        let activeSession = [];
+        let currentIndex = -1;
+        let isRunning = false;
+
+        function initializeSession() {
+            const shuffled = [...pool].sort(() => 0.5 - Math.random());
+            activeSession = shuffled.slice(0, 3);
+            currentIndex = 0;
+        }
+
+        function parseSentence(raw) {
+            const regex = /([^\[\]]+)(?:\[([^\[\]]+)\])?/g;
+            let match, parts = [];
+            while ((match = regex.exec(raw)) !== null) {
+                parts.push({ text: match[1], reading: match[2] || "" });
+            }
+            return parts;
+        }
+
+        function createEmoji(emojiList) {
+            const emoji = document.createElement('div');
+            emoji.className = 'emoji-pop';
+            emoji.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
+            emoji.style.left = `${Math.random() * 80 + 10}%`;
+            emoji.style.top = `40%`;
+            document.body.appendChild(emoji);
+            setTimeout(() => emoji.remove(), 1200);
+        }
+
+        async function runFlashcard() {
+            if (isRunning) return;
+            isRunning = true;
+
+            vocabContainer.classList.remove('visible');
+            
+            const selectedData = activeSession[currentIndex];
+            sessionText.innerText = `SESSION: ${currentIndex + 1} / 3`;
+            
+            const parsedData = parseSentence(selectedData.text);
+            displayElement.innerHTML = "";
+            progressBar.style.width = "0%";
+
+            for (let i = 0; i < parsedData.length; i++) {
+                const item = parsedData[i];
+                const span = document.createElement('span');
+                span.innerHTML = `<ruby>${item.text}<rt>${item.reading}</rt></ruby>`;
+                displayElement.appendChild(span);
+                if(item.text.length > 0 && !/[\u3040-\u309F\u30A0-\u30FF]/.test(item.text)) {
+                    // Logic to pop emoji for Kanji parts
+                }
+                if(selectedData.emojis.length > 0) createEmoji(selectedData.emojis);
+                
+                progressBar.style.width = `${((i + 1) / parsedData.length) * 50}%`;
+                speak(item.text, 1.2); 
+                await sleep(600);
+            }
+
+            progressBar.style.width = "100%";
+            statusText.innerText = currentIndex === 2 ? "Session Complete! Tap to restart" : "Tap for next card";
+            
+            speak(parsedData.map(p => p.text).join(''), 0.85);
+            await sleep(800);
+            
+            if(selectedData.vocab) showVocab(selectedData.vocab);
+
+            if (currentIndex >= 2) {
+                initializeSession(); 
+            } else {
+                currentIndex++;
+            }
+            
+            isRunning = false;
+        }
+
+        function showVocab(list) {
+            vocabContainer.innerHTML = `<div style="color:var(--accent); font-weight:bold; margin-bottom:12px; font-size:0.75rem;">VOCABULARY</div>`;
+            list.forEach(v => {
+                const item = document.createElement('div');
+                item.className = 'vocab-item';
+                // FIXED: Using ruby for furigana on top in the vocab list
+                item.innerHTML = `
+                    <div class="vocab-jp"><ruby>${v.word}<rt>${v.reading}</rt></ruby></div>
+                    <div class="vocab-en">${v.mean}</div>
+                `;
+                item.onclick = (e) => { e.stopPropagation(); speak(v.word, 1); };
+                vocabContainer.appendChild(item);
+            });
+            vocabContainer.classList.add('visible');
+        }
+
+        function speak(text, rate) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ja-JP';
+            msg.rate = rate;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(msg);
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        document.getElementById('card').addEventListener('click', runFlashcard);
+        
+        window.addEventListener('load', () => {
+            initializeSession();
+            statusText.innerText = "Tap card to begin";
+        });
+    </script>
+</body>
+</html>
