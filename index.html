@@ -238,7 +238,7 @@
             statusText.innerText = currentIndex === 2 ? "Session Complete! Tap to restart" : "Tap for next card";
             
             speak(parsedData.map(p => p.text).join(''), 0.85);
-            await sleep(800);
+            await sleep(1800);
             
             if(selectedData.vocab) showVocab(selectedData.vocab);
 
