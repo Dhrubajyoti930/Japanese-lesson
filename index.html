@@ -223,24 +223,25 @@
                 const span = document.createElement('span');
                 span.innerHTML = `<ruby>${item.text}<rt>${item.reading}</rt></ruby>`;
                 
-                // Show text character/segment first
+                // 1. Show the character segment immediately
                 displayElement.appendChild(span);
                 
-                // DELAY: Wait 1 second after showing text before playing audio
+                // 2. WAIT 1 SECOND (Study gap)
                 await sleep(1000); 
 
+                // 3. TRIGGER SOUND AND EFFECTS SIMULTANEOUSLY
                 if(selectedData.emojis.length > 0) createEmoji(selectedData.emojis);
                 progressBar.style.width = `${((i + 1) / parsedData.length) * 50}%`;
-                
                 speak(item.text, 1.2); 
-                // Wait for audio to finish/segment pause
-                await sleep(600);
+                
+                // 4. Short pause to let sound breathe before next character
+                await sleep(500);
             }
 
             progressBar.style.width = "100%";
             statusText.innerText = currentIndex === 2 ? "Session Complete! Tap to restart" : "Tap for next card";
             
-            await sleep(500);
+            await sleep(400);
             speak(parsedData.map(p => p.text).join(''), 0.85);
             await sleep(1800);
             
