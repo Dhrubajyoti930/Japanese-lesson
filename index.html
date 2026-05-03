@@ -2,261 +2,255 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-Flash Pro | Emojis Restored</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>にほんご たどく ぷれーやー</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-ruby: #94a3b8;
-            --accent: #22c55e;
-            --secondary: #334155;
-            --safe-area-bottom: env(safe-area-inset-bottom);
-        }
-
-        * { 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-            touch-action: manipulation; 
+            --bg-pastel: #fff9e6;
+            --primary-pink: #ff99aa;
+            --secondary-blue: #a3d8f4;
+            --text-color: #5a4a42;
+            --white: #ffffff;
         }
 
         body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg-pastel);
+            color: var(--text-color);
+            font-family: 'Zen Maru Gothic', 'Sawarabi Gothic', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
             overflow-x: hidden;
         }
 
-        #session-info {
-            font-size: 0.75rem;
-            color: var(--text-ruby);
-            margin-bottom: 12px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-        }
+        header { text-align: center; margin-bottom: 10px; }
+        h1 { font-size: 1.5rem; color: var(--primary-pink); text-shadow: 2px 2px var(--white); }
 
-        #card {
-            background: var(--card-bg);
+        .story-card {
+            background: var(--white);
             width: 100%;
-            max-width: 360px;
-            aspect-ratio: 4/5;
-            border-radius: 32px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            z-index: 10;
-        }
-
-        #card:active { transform: scale(0.96); }
-
-        #display-text {
-            font-size: clamp(1.4rem, 8vw, 2.4rem);
-            font-weight: 700;
-            line-height: 2.4;
+            max-width: 450px;
+            min-height: 300px;
+            border-radius: 25px;
+            border: 6px solid var(--secondary-blue);
+            padding: 25px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 0px rgba(163, 216, 244, 0.3);
+            margin-bottom: 20px;
             text-align: center;
         }
 
-        .word-chunk { display: inline-block; margin: 0 3px; transition: color 0.3s ease; }
-        .active-word { color: var(--accent); }
+        #emoji-display { font-size: 4.5rem; margin-bottom: 15px; display: block; }
 
-        ruby { ruby-align: center; }
-        rt { font-size: 0.45em; color: var(--text-ruby); font-weight: 500; }
-
-        #progress-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 6px;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.4s ease;
-            border-radius: 32px 32px 0 0;
-        }
-
-        #vocab-container {
-            width: 100%;
-            max-width: 360px;
-            margin-top: 1.5rem;
-            opacity: 0;
-            transition: all 0.4s ease;
-            transform: translateY(10px);
-            padding-bottom: calc(30px + var(--safe-area-bottom));
-        }
-
-        #vocab-container.visible { opacity: 1; transform: translateY(0); }
-
-        .vocab-item {
-            background: var(--secondary);
-            margin-bottom: 10px;
-            padding: 16px 20px;
-            border-radius: 18px;
+        #story-text {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            font-size: 1.5rem;
+            line-height: 2.2;
+            font-weight: bold;
+        }
+
+        .char {
+            display: inline-block;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
+            padding: 0 1px;
+            position: relative;
+        }
+
+        /* Character Lift Effect - No Background Highlight */
+        .char.active {
+            color: var(--primary-pink);
+            transform: translateY(-18px) scale(1.4);
+            z-index: 10;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 50px;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.1);
+            color: white;
+            font-family: inherit;
         }
 
-        .vocab-item:active { transform: scale(0.97); background-color: #475569; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px rgba(0,0,0,0.1); }
+        .btn-stories { background-color: var(--primary-pink); grid-column: span 2; }
+        .btn-play { background-color: #8ed35d; }
+        .btn-stop { background-color: #ffb347; }
 
-        #status {
-            margin-top: 1rem;
-            font-size: 0.65rem;
-            color: #64748b;
-            letter-spacing: 0.15em;
-        }
-
-        .emoji-pop {
+        #menu-overlay {
+            display: none;
             position: fixed;
-            font-size: 2.8rem;
-            pointer-events: none;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,249,230,0.98);
             z-index: 100;
-            animation: floatUp 1.2s ease-out forwards;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
         }
 
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.5); opacity: 0; }
-            20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
-            100% { transform: translateY(-120px) scale(1); opacity: 0; }
+        .story-list-btn {
+            display: block;
+            width: 100%;
+            background: var(--white);
+            border: 4px solid var(--secondary-blue);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
-    <div id="session-info">SESSION: 0 / 3</div>
+<header><h1>📖 にほんご・たどく</h1></header>
 
-    <div id="card">
-        <div id="progress-bar"></div>
-        <div id="display-text">START</div>
-    </div>
-    
-    <div id="status">READY</div>
-    <div id="vocab-container"></div>
+<div class="story-card">
+    <div id="emoji-display">✨</div>
+    <div id="story-text">「はなし」を えらんでね！</div>
+</div>
 
-    <script>
-        const displayElement = document.getElementById('display-text');
-        const progressBar = document.getElementById('progress-bar');
-        const vocabContainer = document.getElementById('vocab-container');
-        const statusText = document.getElementById('status');
-        const sessionText = document.getElementById('session-info');
-        
-        const pool = [
-            { text: "日[に]本[ほん]に 行[い]きたいです。", emojis: ["🇯🇵", "✈️"], vocab: [{ word: "日本", reading: "にほん", mean: "Japan" }, { word: "行きたい", reading: "いきたい", mean: "Want to go" }] },
-            { text: "朝[あさ]ご飯[ごはん]を 食[た]べましたか？", emojis: ["🥣", "🍳"], vocab: [{ word: "朝ご飯", reading: "あさごはん", mean: "Breakfast" }, { word: "食べた", reading: "たべた", mean: "Ate" }] },
-            { text: "水[みず]を 飲[の]んでも いいですか？", emojis: ["🚰", "🙋‍♂️"], vocab: [{ word: "水", reading: "みず", mean: "Water" }, { word: "飲んでもいい", reading: "のんでもいい", mean: "May drink" }] },
-            { text: "今日[きょう]は 暑[あつ]いですね。", emojis: ["☀️", "🥵"], vocab: [{ word: "今日", reading: "きょう", mean: "Today" }, { word: "暑い", reading: "あつい", mean: "Hot" }] },
-            { text: "一[いっ]緒[しょ]に 遊[あそ]びましょう。", emojis: ["🤝", "🎮"], vocab: [{ word: "一緒に", reading: "いっしょに", mean: "Together" }, { word: "遊びましょう", reading: "あそびましょう", mean: "Let's play" }] }
-        ];
+<div class="button-grid">
+    <button class="btn btn-stories" onclick="openMenu()">🌟 はなしを えらぶ</button>
+    <button class="btn btn-play" onclick="startReading()">▶ きく</button>
+    <button class="btn btn-stop" onclick="stopReading()">■ とめる</button>
+</div>
 
-        let activeSession = [];
-        let currentIndex = -1;
-        let isRunning = false;
+<div id="menu-overlay">
+    <div style="font-size:1.4rem; color:var(--primary-pink); text-align:center; font-weight:bold; margin-bottom:20px;">どれを よむ？</div>
+    <div id="list-container"></div>
+    <button class="btn" style="background:var(--text-color); width:100%; margin-top:10px;" onclick="closeMenu()">もどる</button>
+</div>
 
-        function initializeSession() {
-            const shuffled = [...pool].sort(() => 0.5 - Math.random());
-            activeSession = shuffled.slice(0, 3);
-            currentIndex = 0;
-        }
+<script>
+    const stories = [
+        { t: "わたしの いちにち", e: "☀️", s: ["あさ、", "おきます。", "かおを", "あらいます。", "ごはんを", "たべます。", "おちゃを", "のみます。"] },
+        { t: "かぞく", e: "👨‍👩‍👧‍👦", s: ["わたしの", "家族は", "四人です。", "父と", "母と", "姉と", "わたしです。", "犬もいます。"] },
+        { t: "たべもの", e: "🍣", s: ["おすしが", "大好きです。", "月曜日に", "食べました。", "おいしかったです。", "ラーメンも", "好きです。"] },
+        { t: "おてんき", e: "🌈", s: ["きょうは", "はれです。", "とても", "あついです。", "あしたは", "あめです。", "すこし", "さむいです。"] },
+        { t: "かいもの", e: "🛍️", s: ["デパートへ", "行きました。", "赤い", "かばんを", "買いました。", "五千円でした。", "きれいです。"] }
+    ];
 
-        function speak(text, rate = 1.0) {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'ja-JP';
-            msg.rate = rate;
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(msg);
-        }
+    let currentStoryPhrases = [];
+    let totalCharSpans = [];
+    let isPlaying = false;
+    let currentPhraseIndex = -1;
+    let globalCharOffset = 0;
 
-        async function runFlashcard() {
-            if (isRunning) return;
-            isRunning = true;
+    const synth = window.speechSynthesis;
+    const emojiDisplay = document.getElementById('emoji-display');
+    const storyContainer = document.getElementById('story-text');
+    const overlay = document.getElementById('menu-overlay');
 
-            vocabContainer.classList.remove('visible');
-            const selectedData = activeSession[currentIndex];
-            sessionText.innerText = `SESSION: ${currentIndex + 1} / 3`;
-            
-            const regex = /([^\s\[\]]+)(?:\[([^\[\]]+)\])?/g;
-            let match, chunks = [];
-            while ((match = regex.exec(selectedData.text)) !== null) {
-                chunks.push({ text: match[1], reading: match[2] || "" });
-            }
+    stories.forEach((item) => {
+        const b = document.createElement('button');
+        b.className = 'story-list-btn';
+        b.innerText = `${item.e} ${item.t}`;
+        b.onclick = () => {
+            emojiDisplay.innerText = item.e;
+            currentStoryPhrases = item.s;
+            renderCharacters();
+            closeMenu();
+        };
+        document.getElementById('list-container').appendChild(b);
+    });
 
-            displayElement.innerHTML = "";
-            progressBar.style.width = "0%";
+    function renderCharacters() {
+        stopReading();
+        storyContainer.innerHTML = '';
+        totalCharSpans = [];
+        let counter = 0;
 
-            for (let i = 0; i < chunks.length; i++) {
-                const chunk = chunks[i];
+        currentStoryPhrases.forEach((phrase) => {
+            phrase.split('').forEach((char) => {
                 const span = document.createElement('span');
-                span.className = 'word-chunk active-word';
-                span.innerHTML = `<ruby>${chunk.text}<rt>${chunk.reading}</rt></ruby>`;
-                displayElement.appendChild(span);
-                
-                // RESTORED: Create emoji from the pool
-                if(selectedData.emojis.length > 0) createEmoji(selectedData.emojis);
-                
-                speak(chunk.text, 1.0);
-                
-                progressBar.style.width = `${((i + 1) / chunks.length) * 50}%`;
-                const wait = 450 + (chunk.reading.length || chunk.text.length) * 150;
-                await new Promise(r => setTimeout(r, wait));
-                span.classList.remove('active-word');
-            }
-
-            progressBar.style.width = "100%";
-            statusText.innerText = "NATURAL FLOW";
-            await new Promise(r => setTimeout(r, 600));
-            
-            speak(chunks.map(c => c.text).join(''), 0.9);
-            await new Promise(r => setTimeout(r, 1800));
-            
-            showVocab(selectedData.vocab);
-
-            if (currentIndex >= 2) {
-                initializeSession(); 
-                statusText.innerText = "SESSION COMPLETE! TAP TO RESTART";
-            } else {
-                currentIndex++;
-                statusText.innerText = "TAP FOR NEXT";
-            }
-            isRunning = false;
-        }
-
-        function showVocab(list) {
-            vocabContainer.innerHTML = "";
-            list.forEach(v => {
-                const item = document.createElement('div');
-                item.className = 'vocab-item';
-                item.innerHTML = `<span class="vocab-jp">${v.word}</span><span class="vocab-en">${v.mean}</span>`;
-                item.onclick = (e) => { e.stopPropagation(); speak(v.word, 1.0); };
-                vocabContainer.appendChild(item);
+                span.className = 'char';
+                span.innerText = char;
+                span.id = `char-${counter}`;
+                storyContainer.appendChild(span);
+                totalCharSpans.push(span);
+                counter++;
             });
-            vocabContainer.classList.add('visible');
+            const spacer = document.createElement('span');
+            spacer.innerHTML = '&nbsp;';
+            storyContainer.appendChild(spacer);
+        });
+        currentPhraseIndex = -1;
+        globalCharOffset = 0;
+    }
+
+    function openMenu() { overlay.style.display = 'block'; }
+    function closeMenu() { overlay.style.display = 'none'; }
+
+    function startReading() {
+        if (totalCharSpans.length === 0 || isPlaying) return;
+        isPlaying = true;
+        currentPhraseIndex = 0;
+        globalCharOffset = 0;
+        readNext();
+    }
+
+    function readNext() {
+        if (!isPlaying || currentPhraseIndex >= currentStoryPhrases.length) {
+            stopReading();
+            return;
         }
 
-        // RESTORED: Random emoji from list
-        function createEmoji(emojiList) {
-            const emoji = document.createElement('div');
-            emoji.className = 'emoji-pop';
-            emoji.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
-            emoji.style.left = `${Math.random() * 60 + 20}%`;
-            emoji.style.top = `40%`;
-            document.body.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 1200);
-        }
+        const text = currentStoryPhrases[currentPhraseIndex];
+        const len = text.length;
+        const utter = new SpeechSynthesisUtterance(text);
+        const voices = synth.getVoices();
+        utter.voice = voices.find(v => v.lang.includes('ja')) || voices[0];
+        utter.rate = 0.75;
 
-        document.getElementById('card').addEventListener('click', runFlashcard);
-        window.addEventListener('load', () => initializeSession());
-    </script>
+        let charIdx = 0;
+        const timer = setInterval(() => {
+            if (!isPlaying) { clearInterval(timer); return; }
+            if (charIdx < len) {
+                totalCharSpans.forEach(el => el.classList.remove('active'));
+                if(totalCharSpans[globalCharOffset]) {
+                    totalCharSpans[globalCharOffset].classList.add('active');
+                }
+                globalCharOffset++;
+                charIdx++;
+            } else {
+                clearInterval(timer);
+            }
+        }, 180);
+
+        utter.onend = () => {
+            totalCharSpans.forEach(el => el.classList.remove('active'));
+            currentPhraseIndex++;
+            setTimeout(readNext, 100);
+        };
+        synth.speak(utter);
+    }
+
+    function stopReading() {
+        isPlaying = false;
+        synth.cancel();
+        totalCharSpans.forEach(el => el.classList.remove('active'));
+    }
+
+    window.speechSynthesis.onvoiceschanged = () => synth.getVoices();
+</script>
+
 </body>
 </html>
