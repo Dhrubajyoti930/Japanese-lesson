@@ -270,7 +270,9 @@
         const len = text.length;
         const utter = new SpeechSynthesisUtterance(text);
         const voices = synth.getVoices();
-        utter.voice = voices.find(v => v.lang.includes('ja')) || voices[0];
+        utter.voice = voices.find(v => v.lang === 'ja-JP')
+           || voices.find(v => v.lang.startsWith('ja'))
+           || voices[0];
         utter.rate = 0.75;
 
         let charIdx = 0;
