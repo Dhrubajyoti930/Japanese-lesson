@@ -259,42 +259,52 @@
         globalCharOffset = 0;
         readNext();
     }
-
-    function readNext() {
-        if (!isPlaying || currentPhraseIndex >= currentStoryPhrases.length) {
-            stopReading();
-            return;
-        }
-
-        const text = currentStoryPhrases[currentPhraseIndex];
-        const len = text.length;
-        const utter = new SpeechSynthesisUtterance(text);
-        const voices = synth.getVoices();
-        utter.voice = voices.find(v => v.lang === 'ja-JP');
-        utter.rate = 0.75;
-
-        let charIdx = 0;
-        const timer = setInterval(() => {
-            if (!isPlaying) { clearInterval(timer); return; }
-            if (charIdx < len) {
-                totalCharSpans.forEach(el => el.classList.remove('active'));
-                if(totalCharSpans[globalCharOffset]) {
-                    totalCharSpans[globalCharOffset].classList.add('active');
-                }
-                globalCharOffset++;
-                charIdx++;
-            } else {
-                clearInterval(timer);
-            }
-        }, 180);
-
-        utter.onend = () => {
-            totalCharSpans.forEach(el => el.classList.remove('active'));
-            currentPhraseIndex++;
-            setTimeout(readNext, 100);
-        };
-        synth.speak(utter);
+    
+function readNext() {
+    if (!isPlaying || currentPhraseIndex >= currentStoryPhrases.length) {
+        stopReading();
+        return;
     }
+
+    const text = currentStoryPhrases[currentPhraseIndex];
+    const len = text.length;
+    const utter = new SpeechSynthesisUtterance(text);
+    
+    // FORCE JAPANESE HERE
+    utter.lang = 'ja-JP'; 
+    
+    const voices = synth.getVoices();
+    // Look for a voice that specifically supports Japanese
+    const jpVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
+    if (jpVoice) {
+        utter.voice = jpVoice;
+    }
+
+    utter.rate = 0.75; // Keeping your slow pace for learners
+
+    let charIdx = 0;
+    const timer = setInterval(() => {
+        if (!isPlaying) { clearInterval(timer); return; }
+        if (charIdx < len) {
+            totalCharSpans.forEach(el => el.classList.remove('active'));
+            if(totalCharSpans[globalCharOffset]) {
+                totalCharSpans[globalCharOffset].classList.add('active');
+            }
+            globalCharOffset++;
+            charIdx++;
+        } else {
+            clearInterval(timer);
+        }
+    }, 200); // Slightly increased to match natural Japanese mora timing
+
+    utter.onend = () => {
+        totalCharSpans.forEach(el => el.classList.remove('active'));
+        currentPhraseIndex++;
+        setTimeout(readNext, 300); // Short pause between phrases
+    };
+    synth.speak(utter);
+}
+
 
     function stopReading() {
         isPlaying = false;
