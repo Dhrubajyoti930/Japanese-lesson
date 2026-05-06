@@ -270,11 +270,7 @@
         const len = text.length;
         const utter = new SpeechSynthesisUtterance(text);
         const voices = synth.getVoices();
-        utter.voice =
-    voices.find(v => v.name.includes('Google 日本語')) ||
-    voices.find(v => v.name.includes('Kyoko')) ||
-    voices.find(v => v.name.includes('Otoya')) ||
-    voices.find(v => v.lang === 'ja-JP');
+        utter.voice = voices.find(v => v.lang === 'ja-JP');
         utter.rate = 0.75;
 
         let charIdx = 0;
