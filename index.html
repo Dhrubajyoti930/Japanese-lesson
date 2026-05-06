@@ -261,10 +261,51 @@
     }
 
     function readNext() {
-        if (!isPlaying || currentPhraseIndex >= currentStoryPhrases.length) {
-            stopReading();
-            return;
+    if (!isPlaying || currentPhraseIndex >= currentStoryPhrases.length) {
+        stopReading();
+        return;
+    }
+
+    const text = currentStoryPhrases[currentPhraseIndex];
+    const len = text.length;
+    const utter = new SpeechSynthesisUtterance(text);
+    
+    // Improved Voice Selection Logic
+    const voices = synth.getVoices();
+    // Priority: Google Japanese -> Natural Local Voices -> Any Japanese
+    const preferredVoice = voices.find(v => v.name.includes('Google 日本語')) || 
+                           voices.find(v => v.name.includes('Kyoko')) ||
+                           voices.find(v => v.lang === 'ja-JP') ||
+                           voices.find(v => v.lang.includes('ja'));
+
+    if (preferredVoice) utter.voice = preferredVoice;
+    
+    utter.rate = 0.8; // Slightly faster than 0.75 feels more natural
+    utter.pitch = 1.0;
+
+    let charIdx = 0;
+    const timer = setInterval(() => {
+        if (!isPlaying) { clearInterval(timer); return; }
+        if (charIdx < len) {
+            totalCharSpans.forEach(el => el.classList.remove('active'));
+            if(totalCharSpans[globalCharOffset]) {
+                totalCharSpans[globalCharOffset].classList.add('active');
+            }
+            globalCharOffset++;
+            charIdx++;
+        } else {
+            clearInterval(timer);
         }
+    }, 180);
+
+    utter.onend = () => {
+        totalCharSpans.forEach(el => el.classList.remove('active'));
+        currentPhraseIndex++;
+        setTimeout(readNext, 100);
+    };
+    synth.speak(utter);
+}
+
 
         const text = currentStoryPhrases[currentPhraseIndex];
         const len = text.length;
